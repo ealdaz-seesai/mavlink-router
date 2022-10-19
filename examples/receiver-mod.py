@@ -35,7 +35,7 @@ mav = mavutil.mavlink_connection('udpin:' + sys.argv[1],
 
 while True:
     msg = mav.recv_match(blocking=True)
-    print("Message from %d: %s" % (msg.get_srcSystem(), msg))
+    print("Message from System ID %d Component %d : %s" % (msg.get_srcSystem(), msg.get_srcComponent(), msg))
     if hasattr(msg, 'target_system'):
         if msg.target_system == 0:
             print("\tMessage sent to all")
@@ -45,8 +45,6 @@ while True:
             print("\tMessage sent to other")
     else:
         print("\tMessage without target system")
-        
-        
 
     mav.mav.ping_send(int(time.time() * 1000), msg.seq, msg.get_srcSystem(),
-                      msg.get_srcComponent())
+                     msg.get_srcComponent())

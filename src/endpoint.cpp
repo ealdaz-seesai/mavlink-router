@@ -274,7 +274,7 @@ int Endpoint::read_msg(struct buffer *pbuf)
             return r;
         }
 
-        log_debug("> %s [%d]%s: Got %zd bytes", _type.c_str(), fd, _name.c_str(), r);
+        //log_debug("> %s [%d]%s: Got %zd bytes", _type.c_str(), fd, _name.c_str(), r);
         rx_buf.len += r;
     }
 
@@ -485,24 +485,27 @@ bool Endpoint::has_sys_comp_id(unsigned sys_comp_id) const
 Endpoint::AcceptState Endpoint::accept_msg(const struct buffer *pbuf) const
 {
     if (Log::get_max_level() >= Log::Level::DEBUG) {
-        log_debug("Endpoint [%d]%s: got message %u to %d/%d from %u/%u",
+       /*log_debug("Endpoint [%d]%s: got message %u to %d/%d from %u/%u",
                   fd,
                   _name.c_str(),
                   pbuf->curr.msg_id,
                   pbuf->curr.target_sysid,
                   pbuf->curr.target_compid,
                   pbuf->curr.src_sysid,
-                  pbuf->curr.src_compid);
-        log_debug("\tKnown components:");
+                  pbuf->curr.src_compid);*/
+                  
+        /*
+        //log_debug("\tKnown components:");
         for (const auto &id : _sys_comp_ids) {
             log_debug("\t\t%u/%u", (id >> 8), id & 0xff);
-        }
+        }*/
     }
 
     // This endpoint sent the message, we don't want to send it back over the
     // same channel to avoid loops: reject
     if (has_sys_comp_id(pbuf->curr.src_sysid, pbuf->curr.src_compid)) {
         return Endpoint::AcceptState::Rejected;
+        log_debug("Message rejected, avoiding loop\n");
     }
 
     // If filter is defined and message is not in the set: discard it
@@ -531,18 +534,45 @@ Endpoint::AcceptState Endpoint::accept_msg(const struct buffer *pbuf) const
     // This endpoint has the target of message (sys and comp id): accept
     if (pbuf->curr.target_compid > 0
         && has_sys_comp_id(pbuf->curr.target_sysid, pbuf->curr.target_compid)) {
+
+        log_debug("Full Match. Endpoint [%d]%s: %d/%d got message %u from %u/%u",
+                  fd,
+                  _name.c_str(),
+                  pbuf->curr.target_sysid,
+                  pbuf->curr.target_compid,
+                  pbuf->curr.msg_id,
+                  pbuf->curr.src_sysid,
+                  pbuf->curr.src_compid);
         return Endpoint::AcceptState::Accepted;
+
     }
 
     // This endpoint has the target of message (sysid, but compid is broadcast or non-existent):
     // accept
     if ((pbuf->curr.target_compid == 0 || pbuf->curr.target_compid == -1)
         && has_sys_id(pbuf->curr.target_sysid)) {
+        log_debug("SysID Match only. Endpoint [%d]%s: %d/%d got message %u from %u/%u",
+                  fd,
+                  _name.c_str(),
+                  pbuf->curr.target_sysid,
+                  pbuf->curr.target_compid,
+                  pbuf->curr.msg_id,
+                  pbuf->curr.src_sysid,
+                  pbuf->curr.src_compid);
         return Endpoint::AcceptState::Accepted;
     }
     // This endpoint has the sniffer_sysid: accept
     if ((sniffer_sysid != 0) && has_sys_id(sniffer_sysid)) {
+        log_debug("Sniffer [%d]%s: got message %u to %d/%d from %u/%u",
+                  fd,
+                  _name.c_str(),
+                  pbuf->curr.msg_id,
+                  pbuf->curr.target_sysid,
+                  pbuf->curr.target_compid,
+                  pbuf->curr.src_sysid,
+                  pbuf->curr.src_compid);
         return Endpoint::AcceptState::Accepted;
+        
     }
 
     // Reject everything else
@@ -1291,7 +1321,7 @@ int UdpEndpoint::write_msg(const struct buffer *pbuf)
                   pbuf->len);
     }
 
-    log_debug("UDP [%d]%s: Wrote %zd bytes", fd, _name.c_str(), r);
+    //log_debug("UDP [%d]%s: Wrote %zd bytes", fd, _name.c_str(), r);
 
     return r;
 }

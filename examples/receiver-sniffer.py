@@ -45,8 +45,6 @@ while True:
             print("\tMessage sent to other")
     else:
         print("\tMessage without target system")
-        
-        
 
-    mav.mav.ping_send(int(time.time() * 1000), msg.seq, msg.get_srcSystem(),
-                      msg.get_srcComponent())
+    #mav.mav.ping_send(int(time.time() * 1000), msg.seq, msg.get_srcSystem(),
+    #                 msg.get_srcComponent())

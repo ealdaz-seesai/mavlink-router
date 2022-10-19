@@ -178,6 +178,7 @@ static int parse_argv(int argc, char *argv[], Configuration &config)
     assert(argv);
 
     while ((c = getopt_long(argc, argv, short_options, long_options, nullptr)) >= 0) {
+        printf("Option given %d\n", c);
         switch (c) {
         case 'h':
             help(stdout);
@@ -232,6 +233,7 @@ static int parse_argv(int argc, char *argv[], Configuration &config)
         case 'g': {
             try {
                 config.debug_log_level = log_level_from_str(optarg);
+                printf("Enabling log level %d\n", (int)config.debug_log_level);
             } catch (const std::exception &e) {
                 log_error("Invalid argument for debug-log-level = %s", optarg);
                 help(stderr);
@@ -240,6 +242,7 @@ static int parse_argv(int argc, char *argv[], Configuration &config)
             break;
         }
         case 'v': {
+            printf("Enabling debug log level\n");
             config.debug_log_level = Log::Level::DEBUG;
             break;
         }

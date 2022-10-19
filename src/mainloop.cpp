@@ -163,7 +163,7 @@ void Mainloop::route_msg(struct buffer *buf)
 
         switch (acceptState) {
         case Endpoint::AcceptState::Accepted:
-            log_debug("Endpoint [%d] accepted message %u to %d/%d from %u/%u",
+            log_debug("Endpoint [%d] accepted message %u to target %d/%d from source %u/%u",
                       e->fd,
                       buf->curr.msg_id,
                       buf->curr.target_sysid,
@@ -186,6 +186,14 @@ void Mainloop::route_msg(struct buffer *buf)
             unknown = false;
             break;
         case Endpoint::AcceptState::Rejected:
+            log_debug("Endpoint [%d] rejected message %u to %d/%d from %u/%u",
+                      e->fd,
+                      buf->curr.msg_id,
+                      buf->curr.target_sysid,
+                      buf->curr.target_compid,
+                      buf->curr.src_sysid,
+                      buf->curr.src_compid);
+            unknown = false;
             // fall through
         default:
             break; // do nothing (will count as unknown)
@@ -384,7 +392,7 @@ bool Mainloop::add_endpoints(const Configuration &config)
         if (!udp->setup(conf)) {
             return false;
         }
-
+        log_info("Creating UDP endpoint\n");
         g_endpoints.emplace_back(udp);
         auto endpoint = g_endpoints.back();
         this->add_fd(endpoint->fd, endpoint.get(), EPOLLIN);
